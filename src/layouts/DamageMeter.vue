@@ -1,60 +1,48 @@
 <template>
   <div ref="damageMeterRef">
-    <nav
-      class="nav q-electron-drag"
-      :class="
+    <nav class="nav q-electron-drag"
+         :class="
         settingsStore.settings.damageMeter.design.compactDesign &&
         !isMinimized &&
         !isTakingScreenshot
           ? 'compact-nav'
           : ''
-      "
-    >
-      <span
-        v-if="!isMinimized"
-        :class="
+      ">
+      <span v-if="!isMinimized"
+            :class="
           settingsStore.settings.damageMeter.design.compactDesign &&
           !isTakingScreenshot
             ? 'time-compact'
             : 'time'
-        "
-      >
+        ">
         {{ millisToMinutesAndSeconds(fightDuration) }}
       </span>
       <div class="info-box">
-        <div
-          v-if="
+        <div v-if="
             !settingsStore.settings.damageMeter.design.compactDesign ||
             isMinimized ||
             isTakingScreenshot
-          "
-        >
+          ">
           LOA Details
           <span v-if="!isMinimized">
             v{{ settingsStore.settings.appVersion }}
           </span>
         </div>
-        <div
-          v-if="!isMinimized && sessionState.damageStatistics"
-          class="q-electron-drag--exception"
-        >
+        <div v-if="!isMinimized && sessionState.damageStatistics"
+             class="q-electron-drag--exception">
           <q-menu touch-position context-menu>
             <q-list dense style="min-width: 100px">
-              <q-item
-                v-for="tabName in Object.keys(
+              <q-item v-for="tabName in Object.keys(
                   settingsStore.settings.damageMeter.header
                 )"
-                :key="tabName"
-                clickable
-                @click="toggleHeaderDisplay(tabName)"
-              >
+                      :key="tabName"
+                      clickable
+                      @click="toggleHeaderDisplay(tabName)">
                 <q-item-section side>
-                  <q-icon
-                    v-if="
+                  <q-icon v-if="
                       settingsStore.settings.damageMeter.header[tabName].enabled
                     "
-                    name="check"
-                  />
+                          name="check" />
                   <q-icon v-else name="close" />
                 </q-item-section>
                 <q-item-section>
@@ -63,31 +51,23 @@
               </q-item>
             </q-list>
           </q-menu>
-          <span
-            v-if="settingsStore.settings.damageMeter.header.damage.enabled"
-            style="margin-right: 12px"
-          >
+          <span v-if="settingsStore.settings.damageMeter.header.damage.enabled"
+                style="margin-right: 12px">
             Total DMG
             {{ numberFormat(totalDamageDealt) }}
           </span>
-          <span
-            v-if="settingsStore.settings.damageMeter.header.dps.enabled"
-            style="margin-right: 12px"
-          >
+          <span v-if="settingsStore.settings.damageMeter.header.dps.enabled"
+                style="margin-right: 12px">
             Total DPS
             {{ numberFormat(sessionDPS) }}
           </span>
-          <span
-            v-if="settingsStore.settings.damageMeter.header.tank.enabled"
-            style="margin-right: 12px"
-          >
+          <span v-if="settingsStore.settings.damageMeter.header.tank.enabled"
+                style="margin-right: 12px">
             Total TNK
             {{ numberFormat(sessionState.damageStatistics.totalDamageTaken) }}
           </span>
-          <span
-            v-if="settingsStore.settings.damageMeter.header.bossHP.enabled"
-            style="margin-right: 12px"
-          >
+          <span v-if="settingsStore.settings.damageMeter.header.bossHP.enabled"
+                style="margin-right: 12px">
             {{
               isTakingScreenshot
                 ? sessionState.currentBoss
@@ -127,45 +107,37 @@
         </div>
       </div>
       <div v-if="!isTakingScreenshot" style="margin-left: auto">
-        <q-btn
-          v-if="!isMinimized"
-          round
-          icon="screenshot_monitor"
-          @click="takeScreenshot"
-          flat
-          size="sm"
-        >
+        <q-btn v-if="!isMinimized"
+               round
+               icon="screenshot_monitor"
+               @click="takeScreenshot"
+               flat
+               size="sm">
           <q-tooltip> Take a screenshot of the damage meter </q-tooltip>
         </q-btn>
-        <q-btn
-          v-if="!isMinimized"
-          round
-          icon="fa-solid fa-ghost"
-          @click="enableClickthrough"
-          flat
-          size="sm"
-        >
+        <q-btn v-if="!isMinimized"
+               round
+               icon="fa-solid fa-ghost"
+               @click="enableClickthrough"
+               flat
+               size="sm">
           <q-tooltip ref="clickthroughTooltip">
             Enable clickthrough on damage meter
           </q-tooltip>
         </q-btn>
-        <q-btn
-          v-if="!isMinimized"
-          round
-          :icon="isFightPaused ? 'play_arrow' : 'pause'"
-          @click="toggleFightPause"
-          flat
-          size="sm"
-        >
+        <q-btn v-if="!isMinimized"
+               round
+               :icon="isFightPaused ? 'play_arrow' : 'pause'"
+               @click="toggleFightPause"
+               flat
+               size="sm">
           <q-tooltip> Pause timer </q-tooltip>
         </q-btn>
-        <q-btn
-          round
-          :icon="isMinimized ? 'add' : 'remove'"
-          @click="toggleMinimizedState"
-          flat
-          size="sm"
-        >
+        <q-btn round
+               :icon="isMinimized ? 'add' : 'remove'"
+               @click="toggleMinimizedState"
+               flat
+               size="sm">
           <q-tooltip> Minimize damage meter </q-tooltip>
         </q-btn>
       </div>
@@ -175,57 +147,68 @@
       </span>
     </nav>
 
-    <DamageMeterTable
-      v-if="
+    <div style="position:relative;">
+    <div class="healthBar" align="left" :style="{'height': '5px', 'width': 100 - Math.min(Math.round((totalDamageDealt / (sessionState.currentBoss == undefined ? 1 : sessionState.currentBoss.maxHp ?? 1)) * 10000) / 100, 100) + '%'}">
+      <p style="transform: translate(20px,5px);margin:0;display:inline-block;">{{100 - Math.min(Math.round((totalDamageDealt / (sessionState.currentBoss == undefined ? 1 : sessionState.currentBoss.maxHp ?? 1)) * 10000) / 100, 100) }}%</p>
+    </div>
+  </div>
+
+
+    <!-- For extreme valtan -->
+    <div style="position:relative;">
+      <h6 style="transform: translate(-20px); width:100%;margin-right:0;text-align:right;position:absolute">{{Math.floor(160 - totalDamageDealt * 160 / sessionState.currentBoss.maxHp)}}x</h6>
+      <div class="healthBar" align="left" :style="{'height': '30px', 'width': 100 - ((totalDamageDealt % (sessionState.currentBoss.maxHp / 160))/(sessionState.currentBoss.maxHp / 160)) * 100 + '%'}">
+
+        <p style="transform: translate(20px,5px);margin:0;display:inline-block;">{{100 - Math.min(Math.round(totalDamageDealt / 76151980669 * 10000) / 100, 100) }}%</p>
+
+  <!-- DEBUG USE -->
+        <!--<p style="transform: translate(50px,5px);margin:0;display:inline-block;">{{totalDamageDealt * 160 / sessionState.currentBoss.maxHp}} -  {{((totalDamageDealt % (sessionState.currentBoss.maxHp / 160))/(sessionState.currentBoss.maxHp / 160)) * 100}}</p>-->
+      </div>
+    </div>
+
+    <DamageMeterTable v-if="
         !isMinimized && sessionState && sessionState.startedOn !== undefined
       "
-      :session-state="(sessionState as GameState)"
-      :duration="fightDuration"
-      :damage-type="damageType"
-      :wrapper-style="`height:calc(100vh - 32px - ${
+                      :session-state="(sessionState as GameState)"
+                      :duration="fightDuration"
+                      :damage-type="damageType"
+                      :wrapper-style="`height:calc(100vh - 32px - ${
         settingsStore?.settings?.damageMeter?.design?.compactDesign
           ? '32'
           : '64'
       }px)`"
-      :name-display="
+                      :name-display="
         settingsStore?.settings?.damageMeter?.functionality?.nameDisplayV2
-      "
-    />
+      " />
 
     <footer v-if="!isMinimized" class="footer">
       <div class="tabs" id="footer-tabs">
         <q-tabs dense v-model="damageType" align="left" :breakpoint="0">
           <template v-for="tab of tabs.tabData">
-            <q-tab
-              v-if="tab.enabled && tab.isVisible"
-              dense
-              :key="tab.type"
-              :name="tab.type"
-              :label="tab.label"
-            >
+            <q-tab v-if="tab.enabled && tab.isVisible"
+                   dense
+                   :key="tab.type"
+                   :name="tab.type"
+                   :label="tab.label">
               <q-tooltip anchor="top middle" self="bottom middle">
                 {{ tab.tooltip }}
               </q-tooltip>
             </q-tab>
           </template>
-          <q-btn-dropdown
-            v-if="tabs.isOverflowing"
-            auto-close
-            stretch
-            flat
-            dropdown-icon="arrow_drop_up"
-          >
+          <q-btn-dropdown v-if="tabs.isOverflowing"
+                          auto-close
+                          stretch
+                          flat
+                          dropdown-icon="arrow_drop_up">
             <q-list>
               <template v-for="tab of tabs.tabData">
-                <q-item
-                  v-if="tab.enabled && !tab.isVisible"
-                  :active="tab.type === damageType"
-                  :key="tab.type"
-                  clickable
-                  @click="damageType = tab.type"
-                >
-                  <q-item-section
-                    >{{ tab.label }}
+                <q-item v-if="tab.enabled && !tab.isVisible"
+                        :active="tab.type === damageType"
+                        :key="tab.type"
+                        clickable
+                        @click="damageType = tab.type">
+                  <q-item-section>
+                    {{ tab.label }}
                     <q-tooltip anchor="top middle" self="bottom middle">
                       {{ tab.tooltip }}
                     </q-tooltip>
@@ -239,34 +222,28 @@
       </div>
 
       <div class="functions">
-        <span
-          v-if="
+        <span v-if="
             settingsStore.settings.damageMeter.design.compactDesign &&
             !isTakingScreenshot
-          "
-        >
+          ">
           v{{ settingsStore.settings.appVersion }}
         </span>
-        <q-btn
-          flat
-          size="sm"
-          :disabled="settingsStore.settings.uploads.uploadKey.length != 32"
-          :label="`UPLOADING: ${
+        <q-btn flat
+               size="sm"
+               :disabled="settingsStore.settings.uploads.uploadKey.length != 32"
+               :label="`UPLOADING: ${
             settingsStore.settings.uploads.uploadLogs ? ' ON' : ' OFF'
           }`"
-          :color="
+               :color="
             settingsStore.settings.uploads.uploadLogs ? 'positive' : 'negative'
           "
-          @click="toggleUploads"
-        >
+               @click="toggleUploads">
           <q-tooltip>Toggles uploading encounters</q-tooltip>
         </q-btn>
-        <q-btn
-          flat
-          size="sm"
-          @click="requestSessionRestart"
-          label="RESET SESSION"
-        >
+        <q-btn flat
+               size="sm"
+               @click="requestSessionRestart"
+               label="RESET SESSION">
           <q-tooltip> Resets the timer and damages </q-tooltip>
         </q-btn>
       </div>
@@ -901,5 +878,8 @@ li {
   overflow: hidden;
   height: 32px;
   flex: 0 0 auto;
+}
+.healthBar {
+    background-color:red;
 }
 </style>
